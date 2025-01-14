@@ -15,11 +15,11 @@ class UserManager(BaseUserManager):
         """Create and save a User with the given email and password."""
         if not email:
             raise ValueError("The given email must be set")
-        if not extra_fields.get('first_name'):
+        if not extra_fields.get("first_name"):
             raise ValueError("The first name must be set")
-        if not extra_fields.get('last_name'):
+        if not extra_fields.get("last_name"):
             raise ValueError("The last name must be set")
-        if not extra_fields.get('phone'):
+        if not extra_fields.get("phone"):
             raise ValueError("The phone number must be set")
 
         email = self.normalize_email(email)
