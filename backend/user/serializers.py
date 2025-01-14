@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
@@ -15,10 +17,16 @@ class UserSerializer(serializers.ModelSerializer):
             "password": {"write_only": True, "min_length": 8},
         }
 
+    def validate_phone(self, value):
+        if not re.match(r"^\+?\d{9,15}$", value):  # Перевірка формату номера
+            raise serializers.ValidationError(
+                "Invalid phone number format. It must contain 9 to 15 digits and can start with '+'.")
+        return value
+
     def validate(self, data):
         """Ensure passwords match"""
         if data["password"] != data.pop("confirm_password", None):
-            raise serializers.ValidationError({"password": "Passwords do not match."})
+            raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
         return data
 
     def validate_password(self, value):
