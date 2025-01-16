@@ -1,8 +1,10 @@
 from rest_framework import viewsets, mixins
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
+from django_filters.rest_framework import DjangoFilterBackend
+
+from .filters import ProductFilter
 from .permissions import IsAdminOrIfAuthenticatedReadOnly
 
 from .models import Product, Collection, Category
@@ -13,7 +15,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
-    
+
 
 class ProductViewSet(
     mixins.ListModelMixin,
@@ -26,10 +28,13 @@ class ProductViewSet(
         "brand",
         "color",
         "size",
-        "collection"
+        "collection",
+        "category"
     )
     serializer_class = ProductSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = ProductFilter
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -38,6 +43,17 @@ class ProductViewSet(
             return ProductListSerializer
 
         return self.serializer_class
+
+    @action(detail=False, methods=["get"], url_path="search")
+    def search(self, request):
+        queryset = self.filter_queryset(self.queryset)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = ProductListSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(url_path="on-sales", detail=False, methods=[
         "get",
