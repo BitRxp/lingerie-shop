@@ -2,6 +2,7 @@ import os
 import uuid
 
 from django.db import models
+from django.forms import BooleanField
 from django.utils.text import slugify
 
 
@@ -27,9 +28,8 @@ class Brand(models.Model):
 
 
 def collection_image_file_path(instance, filename):
-    """Генерация пути для сохранения изображения коллекции"""
     extension = os.path.splitext(filename)[1]
-    collection_name = slugify(instance.name)  # Используем имя коллекции
+    collection_name = slugify(instance.name)
     filename = f"{collection_name}-{uuid.uuid4()}{extension}"
     return os.path.join("uploads/collections/", filename)
 
@@ -42,18 +42,27 @@ class Collection(models.Model):
         return self.name
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Product(models.Model):
     title = models.CharField(max_length=150, unique=True, null=False)
     color = models.ManyToManyField("Color", blank=True)
     size = models.ManyToManyField("Size", blank=True)
     collection = models.ManyToManyField("Collection", blank=True)
     description = models.TextField(null=False)
+    category = models.ManyToManyField("Category", blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     reviews = models.IntegerField(default=0)
     is_sales = models.BooleanField(default=False)
     rating = models.FloatField(null=True, blank=True)
     brand = models.ManyToManyField("Brand", blank=True)
     code = models.CharField(max_length=10, unique=True, blank=True, null=True)
+    available = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         if not self.code:

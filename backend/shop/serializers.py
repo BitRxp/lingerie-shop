@@ -7,7 +7,7 @@ from .models import (
     Size,
     Brand,
     Product,
-    ProductImage, Collection
+    ProductImage, Collection, Category
 )
 
 
@@ -41,6 +41,12 @@ class CollectionSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "image")
 
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ("id", "name")
+
+
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, required=False)
     collection = serializers.SlugRelatedField(
@@ -63,6 +69,11 @@ class ProductSerializer(serializers.ModelSerializer):
         slug_field="name",
         queryset=Brand.objects.all(),
     )
+    category = serializers.SlugRelatedField(
+        many=True,
+        slug_field="name",
+        queryset=Collection.objects.all(),
+    )
 
     class Meta:
         model = Product
@@ -74,12 +85,14 @@ class ProductSerializer(serializers.ModelSerializer):
             "size",
             "collection",
             "description",
+            "category",
             "price",
             "images",
             "reviews",
             "is_sales",
             "rating",
             "code",
+            "available"
         )
 
     def create(self, validated_data):
@@ -105,4 +118,4 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductListSerializer(ProductSerializer):
     class Meta:
         model = Product
-        fields = ("id", "title", "images", "price")
+        fields = ("id", "title", "images", "price", "available",)
