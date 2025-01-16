@@ -26,16 +26,20 @@ class Brand(models.Model):
         return self.name
 
 
-def product_image_file_path(instance, filename):
+def collection_image_file_path(instance, filename):
+    """Генерация пути для сохранения изображения коллекции"""
     extension = os.path.splitext(filename)[1]
-    product_title = instance.product.title if instance.product else "default"
-    filename = f"{slugify(product_title)}-{uuid.uuid4()}{extension}"
-    return os.path.join("uploads/products/", filename)
+    collection_name = slugify(instance.name)  # Используем имя коллекции
+    filename = f"{collection_name}-{uuid.uuid4()}{extension}"
+    return os.path.join("uploads/collections/", filename)
 
 
 class Collection(models.Model):
     name = models.CharField(max_length=255)
-    image = models.ImageField(upload_to=product_image_file_path)
+    image = models.ImageField(upload_to=collection_image_file_path)
+
+    def __str__(self):
+        return self.name
 
 
 class Product(models.Model):
@@ -58,6 +62,13 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.code})"
+
+
+def product_image_file_path(instance, filename):
+    extension = os.path.splitext(filename)[1]
+    product_title = instance.product.title if instance.product else "default"
+    filename = f"{slugify(product_title)}-{uuid.uuid4()}{extension}"
+    return os.path.join("uploads/products/", filename)
 
 
 class ProductImage(models.Model):
