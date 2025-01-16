@@ -27,25 +27,29 @@ class Brand(models.Model):
 
 
 def product_image_file_path(instance, filename):
-    _, extension = os.path.splitext(filename)
-    filename = f"{slugify(instance.title)}-{uuid.uuid4()}{extension}"
-
+    extension = os.path.splitext(filename)[1]
+    product_title = instance.product.title if instance.product else "default"
+    filename = f"{slugify(product_title)}-{uuid.uuid4()}{extension}"
     return os.path.join("uploads/products/", filename)
+
+
+class Collection(models.Model):
+    name = models.CharField(max_length=255)
+    image = models.ImageField(upload_to=product_image_file_path)
 
 
 class Product(models.Model):
     title = models.CharField(max_length=150, unique=True, null=False)
-    color = models.ManyToManyField('Color', blank=True)
-    size = models.ManyToManyField('Size', blank=True)
+    color = models.ManyToManyField("Color", blank=True)
+    size = models.ManyToManyField("Size", blank=True)
+    collection = models.ManyToManyField("Collection", blank=True)
     description = models.TextField(null=False)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     reviews = models.IntegerField(default=0)
     is_sales = models.BooleanField(default=False)
     rating = models.FloatField(null=True, blank=True)
-    brand = models.ManyToManyField('Brand', blank=True)  # Зв'язок із Brand
-    code = models.CharField(max_length=10, unique=True, blank=True, null=True)  # Унікальний код продукту
-
-
+    brand = models.ManyToManyField("Brand", blank=True)
+    code = models.CharField(max_length=10, unique=True, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.code:
