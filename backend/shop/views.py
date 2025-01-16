@@ -2,7 +2,7 @@ from rest_framework import viewsets, mixins
 from .permissions import IsAdminOrIfAuthenticatedReadOnly
 
 from .models import Product
-from .serializers import ProductSerializer
+from .serializers import ProductSerializer, ProductListSerializer
 
 
 class ProductViewSet(
@@ -18,4 +18,7 @@ class ProductViewSet(
     def get_serializer_class(self):
         if self.action == "retrieve":
             return ProductSerializer
+        if self.action == "list":
+            return ProductListSerializer
+
         return self.serializer_class

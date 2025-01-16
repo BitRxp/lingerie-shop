@@ -100,3 +100,9 @@ class ProductSerializer(serializers.ModelSerializer):
                 defaults=image_data
             )
         return instance
+
+
+class ProductListSerializer(ProductSerializer):
+    class Meta:
+        model = Product
+        fields = ("id", "title", "images", "price")
