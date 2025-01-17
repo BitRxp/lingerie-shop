@@ -7,7 +7,11 @@ from .models import (
     Brand,
     Size,
     Collection,
-    Category
+    Category,
+    Cart,
+    Order,
+    CartItem,
+    OrderItem
 )
 
 admin.site.register(Color)
@@ -16,6 +20,10 @@ admin.site.register(Brand)
 admin.site.register(Size)
 admin.site.register(Collection)
 admin.site.register(Category)
+admin.site.register(Cart)
+admin.site.register(Order)
+admin.site.register(CartItem)
+admin.site.register(OrderItem)
 
 
 class ProductImageInline(admin.TabularInline):
