@@ -167,14 +167,12 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            # Используем select_related для оптимизации связанных данных
             return Order.objects.filter(user=self.request.user).select_related("delivery_address")
         else:
             session_key = self.request.session.session_key
             if not session_key:
                 self.request.session.create()
                 session_key = self.request.session.session_key
-            # Используем select_related для анонимных пользователей
             return Order.objects.filter(session_key=session_key).select_related("delivery_address")
     def perform_create(self, serializer):
         if self.request.user.is_authenticated:
