@@ -1,0 +1,122 @@
+.cart-page {
+  padding: 20px;
+
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .empty-cart {
+    text-align: center;
+
+    p {
+      font-size: 18px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .continue-shopping-link {
+      color: #000;
+      font-size: 16px;
+      text-decoration: underline;
+      cursor: pointer;
+
+      &:hover {
+        color: #ff0000;
+      }
+    }
+  }
+
+  .cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f4f4f4;
+      font-weight: bold;
+    }
+
+    .product-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .product-image {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+      }
+
+      span {
+        font-size: 16px;
+        font-weight: bold;
+      }
+    }
+
+    .quantity-input {
+      width: 50px;
+      padding: 5px;
+      text-align: center;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .remove-button {
+      background-color: #ff4d4f;
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+
+      &:hover {
+        background-color: #e63946;
+      }
+    }
+  }
+
+  .cart-summary {
+    text-align: right;
+
+    h2 {
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .clear-cart,
+    .checkout-button {
+      background-color: #000;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      font-weight: bold;
+      margin-left: 10px;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+
+      &:hover {
+        background-color: #444;
+      }
+    }
+
+    .clear-cart {
+      background-color: #ff4d4f;
+
+      &:hover {
+        background-color: #e63946;
+      }
+    }
+  }
+}
