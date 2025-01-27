@@ -1,0 +1,33 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #868f9b;
+  margin-bottom: 20px;
+
+  .breadcrumb-item {
+    display: flex;
+    align-items: center;
+
+    a {
+      color: #868f9b;
+      text-decoration: none;
+      transition: color 0.3s ease, text-decoration 0.3s ease;
+
+      &:hover {
+        color: #1f1f21;
+        text-decoration: underline;
+      }
+    }
+
+    .breadcrumb-separator {
+      margin: 0 8px;
+      color: #ccc; // Колір роздільника
+    }
+
+    .breadcrumb-current {
+      color: #1f1f21;
+      font-weight: bold;
+    }
+  }
+}
