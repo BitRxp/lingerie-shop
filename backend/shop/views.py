@@ -13,7 +13,12 @@ from .models import (
     Product,
     Collection,
     Category,
-    Cart, CartItem, Order, OrderItem, ProductImage
+    Cart,
+    CartItem,
+    Order,
+    OrderItem,
+    ProductImage,
+    Color, Size
 )
 
 from .serializers import (
@@ -22,8 +27,20 @@ from .serializers import (
     CollectionSerializer,
     CategorySerializer,
     CartSerializer, AddToCartSerializer, OrderSerializer, OrderContactSerializer, OrderDeliverySerializer,
-    OrderPaymentSerializer, ProductUploadImageSerializer
+    OrderPaymentSerializer, ProductUploadImageSerializer, ColorSerializer, SizeSerializer
 )
+
+
+class ColorViewSet(viewsets.ModelViewSet):
+    queryset = Color.objects.all()
+    serializer_class = ColorSerializer
+    permission_classes = (IsAdminOrSafeMethods,)
+
+
+class SizeViewSet(viewsets.ModelViewSet):
+    queryset = Size.objects.all()
+    serializer_class = SizeSerializer
+    permission_classes = (IsAdminOrSafeMethods,)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

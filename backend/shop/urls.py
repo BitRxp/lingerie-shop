@@ -6,7 +6,10 @@ from .views import (
     CollectionViewSet,
     CategoryViewSet,
     CartViewSet,
-    OrderViewSet, ProductImageViewSet
+    OrderViewSet,
+    ProductImageViewSet,
+    ColorViewSet,
+    SizeViewSet
 )
 
 router = routers.DefaultRouter()
@@ -16,6 +19,9 @@ router.register("categories", CategoryViewSet)
 router.register("cart", CartViewSet)
 router.register("order", OrderViewSet)
 router.register("product-images", ProductImageViewSet)
+router.register("color", ColorViewSet)
+router.register("size", SizeViewSet)
+
 
 urlpatterns = [path("", include(router.urls))]
 

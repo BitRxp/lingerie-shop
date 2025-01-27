@@ -41,10 +41,12 @@ class ProductImageSerializer(serializers.ModelSerializer):
         model = ProductImage
         fields = ("id", "image", "is_main")
 
+
 class ProductUploadImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         fields = ("id", "product", "image", "is_main")
+
 
 class CollectionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -164,6 +166,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ("id", "product", "quantity", "price")
+
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
