@@ -11,7 +11,8 @@ from .models import (
     Cart,
     Order,
     CartItem,
-    OrderItem
+    OrderItem,
+    Comment
 )
 
 admin.site.register(Color)
@@ -24,6 +25,7 @@ admin.site.register(Cart)
 admin.site.register(Order)
 admin.site.register(CartItem)
 admin.site.register(OrderItem)
+admin.site.register(Comment)
 
 
 class ProductImageInline(admin.TabularInline):

@@ -1,4 +1,4 @@
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -18,7 +18,9 @@ from .models import (
     Order,
     OrderItem,
     ProductImage,
-    Color, Size
+    Color,
+    Size,
+    Comment
 )
 
 from .serializers import (
@@ -26,8 +28,16 @@ from .serializers import (
     ProductListSerializer,
     CollectionSerializer,
     CategorySerializer,
-    CartSerializer, AddToCartSerializer, OrderSerializer, OrderContactSerializer, OrderDeliverySerializer,
-    OrderPaymentSerializer, ProductUploadImageSerializer, ColorSerializer, SizeSerializer
+    CartSerializer,
+    AddToCartSerializer,
+    OrderSerializer,
+    OrderContactSerializer,
+    OrderDeliverySerializer,
+    OrderPaymentSerializer,
+    ProductUploadImageSerializer,
+    ColorSerializer,
+    SizeSerializer,
+    CommentSerializer
 )
 
 
@@ -47,6 +57,17 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrSafeMethods,)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 
 
 class ProductViewSet(
@@ -75,6 +96,20 @@ class ProductViewSet(
             return ProductListSerializer
 
         return self.serializer_class
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_name="add_comment",
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def add_comment(self, request, pk=None):
+        product = self.get_object()
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user, product=product)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
 
     @action(detail=False, methods=["get"], url_path="search")
     def search(self, request):
@@ -191,6 +226,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 self.request.session.create()
                 session_key = self.request.session.session_key
             return Order.objects.filter(session_key=session_key).select_related("delivery_address")
+
     def perform_create(self, serializer):
         if self.request.user.is_authenticated:
             cart = Cart.objects.filter(user=self.request.user).first()
@@ -250,7 +286,6 @@ class OrderViewSet(viewsets.ModelViewSet):
                     price=item.product.price,
                 )
             cart.items.all().delete()
-
 
     @action(detail=True, methods=["post"], url_path="set-payment")
     def set_payment(self, request, pk=None):

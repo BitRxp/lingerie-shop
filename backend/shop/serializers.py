@@ -1,7 +1,6 @@
-from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from .models import Address
+
 
 from .models import (
     Color,
@@ -14,8 +13,30 @@ from .models import (
     Order,
     OrderItem,
     Cart,
-    CartItem
+    CartItem,
+    Address,
+    Comment
 )
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    created_at = serializers.DateTimeField(format="%d-%m-%Y", read_only=True)
+    class Meta:
+        model = Comment
+        fields = ("id", "user", "product", "text", "rating", "created_at")
+
+    def get_user(self, obj):
+        return obj.user.first_name if obj.user.first_name else obj.user.username
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            validated_data["user"] = request.user
+        else:
+            raise serializers.ValidationError("The user must be authenticated.")
+        return super().create(validated_data)
 
 
 class ColorSerializer(serializers.ModelSerializer):
@@ -57,11 +78,14 @@ class CollectionSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ("id", "name")
+        fields = ("id", "name", "image")
 
 
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, required=False)
+    comments = CommentSerializer(many=True, read_only=True)
+    average_rating = serializers.SerializerMethodField()
+
     collection = serializers.SlugRelatedField(
         many=True,
         slug_field="name",
@@ -101,12 +125,16 @@ class ProductSerializer(serializers.ModelSerializer):
             "category",
             "price",
             "images",
+            "average_rating",
             "reviews",
             "is_sales",
-            "rating",
             "code",
-            "available"
+            "available",
+            "comments"
         )
+
+    def get_average_rating(self, obj):
+        return obj.average_rating()
 
     def create(self, validated_data):
         images_data = validated_data.pop("images", [])

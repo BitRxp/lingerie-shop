@@ -45,9 +45,11 @@ class Collection(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    image = models.ImageField(upload_to=collection_image_file_path, null=True)
 
     def __str__(self):
         return self.name
+
 
 class Address(models.Model):
     postal_code = models.CharField(max_length=20)
@@ -58,6 +60,8 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.street_address}, {self.city}, {self.country} ({self.postal_code})"
+
+
 class Order(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -142,6 +146,7 @@ class CartItem(models.Model):
     def __str__(self):
         return f"{self.product.title} - {self.quantity}"
 
+
 class Product(models.Model):
     title = models.CharField(max_length=150, unique=True, null=False)
     color = models.ManyToManyField("Color", blank=True)
@@ -154,13 +159,28 @@ class Product(models.Model):
     is_sales = models.BooleanField(default=False)
     rating = models.FloatField(null=True, blank=True)
     brand = models.ManyToManyField("Brand", blank=True)
-    code = models.CharField(max_length=10, unique=True, blank=True, null=True)
+    code = models.CharField(
+        max_length=10,
+        unique=True,
+        blank=True,
+        null=True
+    )
     available = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         if not self.code:
             self.code = str(uuid.uuid4())[:8].upper()
         super().save(*args, **kwargs)
+
+    def average_rating(self):
+        comments = self.comments.all()
+        if comments:
+            return round(sum(comment.rating for comment in comments) / len(comments), 1)
+        return None
+
+    def update_reviews_count(self):
+        self.reviews = self.comments.count()
+        self.save()
 
     def __str__(self):
         return f"{self.title} ({self.code})"
@@ -180,3 +200,24 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.product.title}"
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    product = models.ForeignKey(
+        Product,
+        related_name="comments",
+        on_delete=models.CASCADE
+    )
+    text = models.TextField()
+    rating = models.PositiveIntegerField(
+        default=5,
+        choices=[(i, i) for i in range(1, 6)]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comment by {self.user} on {self.product.title}"
