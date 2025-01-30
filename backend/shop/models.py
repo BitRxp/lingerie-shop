@@ -32,7 +32,7 @@ def collection_image_file_path(instance, filename):
     extension = os.path.splitext(filename)[1]
     collection_name = slugify(instance.name)
     filename = f"{collection_name}-{uuid.uuid4()}{extension}"
-    return os.path.join("uploads/collections/", filename)
+    return os.path.join("collections/", filename)
 
 
 class Collection(models.Model):
@@ -190,7 +190,7 @@ def product_image_file_path(instance, filename):
     extension = os.path.splitext(filename)[1]
     product_title = instance.product.title if instance.product else "default"
     filename = f"{slugify(product_title)}-{uuid.uuid4()}{extension}"
-    return os.path.join("uploads/products/", filename)
+    return os.path.join("products/", filename)
 
 
 class ProductImage(models.Model):
