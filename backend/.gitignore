@@ -1,0 +1,10 @@
+# Byte-compiled files
+*.pyc
+__pycache__/
+
+# Django specific
+db.sqlite3
+.env
+
+# Logs
+*.log
