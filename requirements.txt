@@ -13,4 +13,6 @@ requests==2.32.3
 PyJWT==2.10.1
 urllib3==2.3.0
 uvicorn==0.34.0
+djangorestframework-simplejwt==5.2.2
+
 
