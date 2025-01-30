@@ -1,3 +1,5 @@
+from drf_yasg.utils import swagger_auto_schema
+
 from rest_framework import viewsets, mixins, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -42,24 +44,28 @@ from .serializers import (
 
 
 class ColorViewSet(viewsets.ModelViewSet):
+    """Manage product colors."""
     queryset = Color.objects.all()
     serializer_class = ColorSerializer
     permission_classes = (IsAdminOrSafeMethods,)
 
 
 class SizeViewSet(viewsets.ModelViewSet):
+    """Manage product sizes."""
     queryset = Size.objects.all()
     serializer_class = SizeSerializer
     permission_classes = (IsAdminOrSafeMethods,)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
+    """Manage product categories."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrSafeMethods,)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Manage product comments."""
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -71,19 +77,14 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(
+    viewsets.GenericViewSet,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    viewsets.GenericViewSet,
+    mixins.UpdateModelMixin
 ):
-    queryset = Product.objects.prefetch_related(
-        "brand",
-        "color",
-        "size",
-        "collection",
-        "category"
-    )
+    """Manage products with filtering and extra actions."""
+    queryset = Product.objects.prefetch_related("brand", "color", "size", "collection", "category")
     serializer_class = ProductSerializer
     permission_classes = (IsAdminOrSafeMethods,)
     filter_backends = (DjangoFilterBackend,)
@@ -94,15 +95,14 @@ class ProductViewSet(
             return ProductSerializer
         if self.action == "list":
             return ProductListSerializer
-
         return self.serializer_class
 
-    @action(
-        detail=True,
-        methods=["post"],
-        url_name="add_comment",
-        permission_classes=[permissions.IsAuthenticated]
+    @swagger_auto_schema(
+        method="post",
+        request_body=CommentSerializer,
+        operation_description="Add a comment to a product."
     )
+    @action(detail=True, methods=["post"], url_name="add_comment", permission_classes=[permissions.IsAuthenticated])
     def add_comment(self, request, pk=None):
         product = self.get_object()
         serializer = CommentSerializer(data=request.data)
@@ -111,6 +111,10 @@ class ProductViewSet(
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
+    @swagger_auto_schema(
+        method="get",
+        operation_description="Search for products based on filters."
+    )
     @action(detail=False, methods=["get"], url_path="search")
     def search(self, request):
         queryset = self.filter_queryset(self.queryset)
@@ -122,6 +126,10 @@ class ProductViewSet(
         serializer = ProductListSerializer(queryset, many=True)
         return Response(serializer.data)
 
+    @swagger_auto_schema(
+        method="get",
+        operation_description="Retrieve products that are on sale."
+    )
     @action(url_path="on-sales", detail=False, methods=[
         "get",
         "post",
@@ -188,6 +196,11 @@ class CartViewSet(viewsets.ModelViewSet):
                 raise ValidationError("Cart already exists for this session.")
             serializer.save(session_key=session_key)
 
+    @swagger_auto_schema(
+        method="post",
+        request_body=AddToCartSerializer,
+        operation_description="Add a product to the cart."
+    )
     @action(detail=False, methods=["post"], url_path="add")
     def add_to_cart(self, request):
         serializer = AddToCartSerializer(data=request.data)
@@ -287,6 +300,11 @@ class OrderViewSet(viewsets.ModelViewSet):
                 )
             cart.items.all().delete()
 
+    @swagger_auto_schema(
+        method="post",
+        request_body=OrderPaymentSerializer,
+        operation_description="Set payment details for an order."
+    )
     @action(detail=True, methods=["post"], url_path="set-payment")
     def set_payment(self, request, pk=None):
         order = self.get_object()
@@ -295,6 +313,11 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response({"detail": "Payment method updated successfully"})
 
+    @swagger_auto_schema(
+        method="post",
+        request_body=OrderDeliverySerializer,
+        operation_description="Set delivery details for an order."
+    )
     @action(detail=True, methods=["post"], url_path="set-delivery")
     def set_delivery(self, request, pk=None):
         order = self.get_object()
@@ -303,6 +326,11 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response({"detail": "Delivery information updated successfully"})
 
+    @swagger_auto_schema(
+        method="post",
+        request_body=OrderContactSerializer,
+        operation_description="Add contact information to an order."
+    )
     @action(detail=False, methods=["post"], url_path="add-contact-info")
     def add_contact_info(self, request):
         serializer = OrderContactSerializer(data=request.data)
@@ -310,6 +338,11 @@ class OrderViewSet(viewsets.ModelViewSet):
         order = serializer.save()
         return Response({"detail": "Contact information added successfully", "order_id": order.id})
 
+    @swagger_auto_schema(
+        method="post",
+        request_body=OrderSerializer,
+        operation_description="Create a new order."
+    )
     @action(detail=False, methods=["post"], url_path="create")
     def create_order(self, request):
         serializer = self.get_serializer(data=request.data)
