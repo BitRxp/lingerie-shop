@@ -166,6 +166,7 @@ class Product(models.Model):
         null=True
     )
     available = models.BooleanField(default=True)
+    sales_counter = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
         if not self.code:
@@ -197,6 +198,12 @@ class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name="images", on_delete=models.CASCADE)
     image = models.ImageField(upload_to=product_image_file_path)
     is_main = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if self.is_main:
+            ProductImage.objects.filter(product=self.product, is_main=True).update(is_main=False)
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Image for {self.product.title}"

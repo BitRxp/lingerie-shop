@@ -130,7 +130,8 @@ class ProductSerializer(serializers.ModelSerializer):
             "is_sales",
             "code",
             "available",
-            "comments"
+            "comments",
+            "sales_counter"
         )
 
     def get_average_rating(self, obj):
