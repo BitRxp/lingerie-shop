@@ -98,6 +98,16 @@ class ProductViewSet(
         return self.serializer_class
 
     @swagger_auto_schema(
+        method="get",
+        operation_description="Get the top-selling products."
+    )
+    @action(detail=False, methods=["get"], url_path="top-sales")
+    def top_sales(self, request):
+        top_products = self.queryset.order_by("-sales_counter")
+        serializer = ProductListSerializer(top_products, many=True)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
         method="post",
         request_body=CommentSerializer,
         operation_description="Add a comment to a product."
@@ -243,62 +253,41 @@ class OrderViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         if self.request.user.is_authenticated:
             cart = Cart.objects.filter(user=self.request.user).first()
-            if not cart or not cart.items.exists():
-                raise ValidationError("Cart is empty. Cannot create an order.")
-
-            total_price = sum(item.product.price * item.quantity for item in cart.items.all())
-            total_price += serializer.validated_data.get("delivery_cost", 0)
-
-            serializer.save(
-                user=self.request.user,
-                first_name=self.request.user.first_name,
-                last_name=self.request.user.last_name,
-                email=self.request.user.email,
-                phone=getattr(self.request.user.profile, "phone", None),
-                total_price=total_price,
-            )
-
-            order = serializer.instance
-            for item in cart.items.all():
-                OrderItem.objects.create(
-                    order=order,
-                    product=item.product,
-                    quantity=item.quantity,
-                    price=item.product.price,
-                )
-            cart.items.all().delete()
         else:
             session_key = self.request.session.session_key
             if not session_key:
                 self.request.session.create()
                 session_key = self.request.session.session_key
-
             cart = Cart.objects.filter(session_key=session_key).first()
-            if not cart or not cart.items.exists():
-                raise ValidationError("Cart is empty. Cannot create an order.")
 
-            total_price = sum(item.product.price * item.quantity for item in cart.items.all())
-            total_price += serializer.validated_data.get("delivery_cost", 0)
+        if not cart or not cart.items.exists():
+            raise ValidationError("Cart is empty. Cannot create an order.")
 
-            serializer.save(
-                user=None,
-                session_key=session_key,
-                total_price=total_price,
-                first_name=serializer.validated_data.get("first_name"),
-                last_name=serializer.validated_data.get("last_name"),
-                email=serializer.validated_data.get("email"),
-                phone=serializer.validated_data.get("phone"),
+        total_price = sum(item.product.price * item.quantity for item in cart.items.all())
+        total_price += serializer.validated_data.get("delivery_cost", 0)
+
+        order = serializer.save(
+            user=self.request.user if self.request.user.is_authenticated else None,
+            session_key=session_key if not self.request.user.is_authenticated else None,
+            total_price=total_price,
+            first_name=serializer.validated_data.get("first_name"),
+            last_name=serializer.validated_data.get("last_name"),
+            email=serializer.validated_data.get("email"),
+            phone=serializer.validated_data.get("phone"),
+        )
+
+        for item in cart.items.all():
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+                price=item.product.price,
             )
 
-            order = serializer.instance
-            for item in cart.items.all():
-                OrderItem.objects.create(
-                    order=order,
-                    product=item.product,
-                    quantity=item.quantity,
-                    price=item.product.price,
-                )
-            cart.items.all().delete()
+            item.product.sales_counter += item.quantity
+            item.product.save(update_fields=["sales_counter"])
+
+        cart.items.all().delete()
 
     @swagger_auto_schema(
         method="post",
